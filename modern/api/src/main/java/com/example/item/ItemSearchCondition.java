@@ -1,5 +1,6 @@
 package com.example.item;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -48,6 +49,9 @@ record ItemSearchCondition(
     private static final Pattern PAGE_FORMAT = Pattern.compile("^[0-9]+$", Pattern.UNIX_LINES);
     private static final Pattern PHP_NUMERIC_PREFIX = Pattern.compile(
         "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?");
+
+    /** 부호를 뺀 크기가 long 에 들어가는 최대 비트 수. */
+    private static final int LONG_MAGNITUDE_BITS = 63;
 
     static final String WARN_KEYWORD_TOO_LONG = "키워드가 너무 길어 100자까지만 사용했습니다.";
     static final String WARN_KEYWORD_ONE_CHAR = "키워드가 한 글자라 결과가 많을 수 있습니다.";
@@ -211,10 +215,9 @@ record ItemSearchCondition(
         String number = m.group();
         boolean integral = !number.contains(".") && m.group(1) == null;
         if (integral) {
-            try {
-                return Long.parseLong(number);
-            } catch (NumberFormatException overflow) {
-                return capToLong(Double.parseDouble(number));
+            BigInteger exact = new BigInteger(number);
+            if (exact.bitLength() <= LONG_MAGNITUDE_BITS) {
+                return exact.longValue();
             }
         }
         return capToLong(Double.parseDouble(number));
