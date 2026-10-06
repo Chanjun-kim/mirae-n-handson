@@ -186,13 +186,33 @@ class ItemSearchServiceTest {
     @Test
     @DisplayName("태그 51자는 50자로 자르고, 등록 여부는 대소문자를 구분해 비교한다")
     void truncatesTagAndChecksRegistration() {
-        when(tagRepository.findAll()).thenReturn(List.of(ItemFixtures.tag(1, "계산")));
+        when(tagRepository.findByName("가".repeat(50))).thenReturn(Optional.empty());
 
         ItemSearchCondition condition = searchAndCapture(request(null, null, null, "가".repeat(51), null, null, null));
 
         assertThat(condition.tag()).isEqualTo("가".repeat(50));
         assertThat(condition.warnings()).containsExactly(
             ItemSearchCondition.WARN_TAG_TOO_LONG, ItemSearchCondition.WARN_TAG_UNKNOWN + "가".repeat(50));
+    }
+
+    @Test
+    @DisplayName("등록된 태그와 이름이 정확히 같으면 경고가 없다")
+    void acceptsRegisteredTag() {
+        when(tagRepository.findByName("계산")).thenReturn(Optional.of(ItemFixtures.tag(1, "계산")));
+
+        ItemSearchCondition condition = searchAndCapture(request(null, null, null, "계산", null, null, null));
+
+        assertThat(condition.warnings()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("DB 가 대소문자만 다른 태그를 돌려줘도 등록되지 않은 태그로 경고한다")
+    void warnsWhenTagDiffersOnlyInCase() {
+        when(tagRepository.findByName("calc")).thenReturn(Optional.of(ItemFixtures.tag(1, "Calc")));
+
+        ItemSearchCondition condition = searchAndCapture(request(null, null, null, "calc", null, null, null));
+
+        assertThat(condition.warnings()).containsExactly(ItemSearchCondition.WARN_TAG_UNKNOWN + "calc");
     }
 
     @Test

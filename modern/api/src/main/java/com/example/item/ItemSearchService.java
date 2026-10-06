@@ -43,8 +43,11 @@ public class ItemSearchService {
         return unitRepository.findByCode(code).isPresent();
     }
 
-    /** 레거시 :251-256 — 등록된 태그 이름과 {@code ===}(대소문자 구분)로 비교한다. */
+    /**
+     * 레거시 :251-256 — 등록된 태그 이름과 {@code ===}(대소문자 구분)로 비교한다.
+     * DB 조회는 컬레이션(utf8mb4_unicode_ci)에 따라 대소문자를 구분하지 않으므로, 찾은 이름을 다시 비교한다.
+     */
     private boolean tagKnown(String name) {
-        return tagRepository.findAll().stream().anyMatch(tag -> tag.getName().equals(name));
+        return tagRepository.findByName(name).map(Tag::getName).filter(name::equals).isPresent();
     }
 }
