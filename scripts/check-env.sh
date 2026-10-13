@@ -12,6 +12,7 @@
 #   CHECK_ENV_ALLOW_ANY_DIR=1   저장소가 ~/work/mirae-n-handson 이 아니어도 실패로 보지 않는다(강사용). /mnt/c 아래는 여전히 실패.
 #   CHECK_ENV_SKIP_DOCKER=1     샘플 서비스 기동 항목을 건너뛴다(경고로 표시).
 
+
 REPO_ROOT="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd -P)"
 EXPECTED_DIR="$HOME/work/mirae-n-handson"
 SAMPLE_URL="http://localhost:8081"
